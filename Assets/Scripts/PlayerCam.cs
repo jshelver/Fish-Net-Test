@@ -1,0 +1,65 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using FishNet.Object;
+
+public class PlayerCam : NetworkBehaviour
+{
+    [Header("Reference")]
+    [SerializeField] CharacterController characterController;
+    [SerializeField] Transform cameraHolder;
+    Camera mainCamera;
+
+    [Header("Look Settings")]
+    [SerializeField] float mouseSensitivity = 25f;
+    [SerializeField] float viewAngle = 80f;
+    float mouseX, mouseY;
+    float xRotation, yRotation;
+
+    public override void OnStartClient()
+    {
+        base.OnStartClient();
+        if (base.IsOwner)
+        {
+            // Parent the main camera under the camera holder
+            mainCamera = Camera.main;
+            mainCamera.transform.parent = cameraHolder;
+            // Reset all local space changes to zero (camera holder transform is modified instead)
+            mainCamera.transform.localPosition = Vector3.zero;
+            mainCamera.transform.localRotation = Quaternion.Euler(Vector3.zero);
+
+            // Lock and hide cursor
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+    }
+
+    void Update()
+    {
+        if (!base.IsOwner) return;
+
+        SetLookInput(InputManager.lookInput);
+        HandleLook();
+    }
+
+    private void SetLookInput(Vector2 lookInput)
+    {
+        // Get mouse inputs
+        mouseX = lookInput.x * mouseSensitivity * Time.deltaTime;
+        mouseY = lookInput.y * mouseSensitivity * Time.deltaTime;
+    }
+
+    private void HandleLook()
+    {
+        // Add input to rotation
+        yRotation += mouseX;
+        xRotation -= mouseY;
+        // Clamp the vertical look angle
+        xRotation = Mathf.Clamp(xRotation, -viewAngle, viewAngle);
+
+        // Player model only rotates horizontally
+        characterController.transform.rotation = Quaternion.Euler(0f, yRotation, 0f);
+        // Camera rotates vertically because it is already being rotated horizontally with the player
+        cameraHolder.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+    }
+}
