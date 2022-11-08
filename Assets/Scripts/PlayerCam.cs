@@ -27,10 +27,6 @@ public class PlayerCam : NetworkBehaviour
             // Reset all local space changes to zero (camera holder transform is modified instead)
             mainCamera.transform.localPosition = Vector3.zero;
             mainCamera.transform.localRotation = Quaternion.Euler(Vector3.zero);
-
-            // Lock and hide cursor
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
         }
     }
 
@@ -40,6 +36,7 @@ public class PlayerCam : NetworkBehaviour
 
         SetLookInput(InputManager.lookInput);
         HandleLook();
+        HandleCursor();
     }
 
     private void SetLookInput(Vector2 lookInput)
@@ -61,5 +58,21 @@ public class PlayerCam : NetworkBehaviour
         characterController.transform.rotation = Quaternion.Euler(0f, yRotation, 0f);
         // Camera rotates vertically because it is already being rotated horizontally with the player
         cameraHolder.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+    }
+
+    private void HandleCursor()
+    {
+        if (InputManager.gameIsPaused)
+        {
+            // Showing and unlocking the cursor
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            // Hiding and locking the cursor
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 }
